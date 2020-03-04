@@ -13,6 +13,7 @@ endif
 #endif
 
 # these can be overridden in developer.mk
+#设置变量
 PX4FIRMWARE_DIRECTORY ?= $(SKETCHBOOK)/modules/PX4Firmware
 PX4NUTTX_DIRECTORY ?= $(SKETCHBOOK)/modules/PX4NuttX
 UAVCAN_DIRECTORY ?= $(SKETCHBOOK)/modules/uavcan
@@ -24,6 +25,9 @@ UAVCAN_DIR=$(shell cd $(UAVCAN_DIRECTORY) && pwd)/
 
 NUTTX_GIT_VERSION ?= $(shell cd $(NUTTX_SRC) && git rev-parse HEAD | cut -c1-8)
 PX4_GIT_VERSION   ?= $(shell cd $(PX4_ROOT) && git rev-parse HEAD | cut -c1-8)
+
+
+
 
 EXTRAFLAGS += -DNUTTX_GIT_VERSION="\"$(NUTTX_GIT_VERSION)\""
 EXTRAFLAGS += -DPX4_GIT_VERSION="\"$(PX4_GIT_VERSION)\""
@@ -41,6 +45,9 @@ EXTRAFLAGS += -I$(UAVCAN_DIRECTORY)/libuavcan/include
 EXTRAFLAGS += -I$(UAVCAN_DIRECTORY)/libuavcan/include/dsdlc_generated
 
 # we have different config files for V1 and V2
+#设置PX4_V2_CONFIG_FILE = mk/PX4/config_px4fmu-v2_APM.mk
+#用来指定该版本的固件需要哪些驱动(或Modules),因此,如果有算定义的驱动,可以在此
+ #加入到系统固件中.
 PX4_V1_CONFIG_FILE=$(MK_DIR)/PX4/config_px4fmu-v1_APM.mk
 PX4_V2_CONFIG_FILE=$(MK_DIR)/PX4/config_px4fmu-v2_APM.mk
 PX4_V3_CONFIG_FILE=$(MK_DIR)/PX4/config_px4fmu-v3_APM.mk
@@ -56,9 +63,11 @@ OPTFLAGS = -fsingle-precision-constant
 # avoid PX4 submodules
 export GIT_SUBMODULES_ARE_EVIL = 1
 
+#设置phthon脚本位置,并导出为临时环境变量:
 PYTHONPATH=$(SKETCHBOOK)/mk/PX4/Tools/genmsg/src:$(SKETCHBOOK)/mk/PX4/Tools/gencpp/src
 export PYTHONPATH
 
+#PX4_MAKE_ARCHIVES变量用来生成内核库文件,执行modules/PX4Firmware下的Makefile.make,具体指令为:
 PX4_MAKE = $(v)+ GIT_SUBMODULES_ARE_EVIL=1 ARDUPILOT_BUILD=1 $(MAKE) -C $(SKETCHBOOK) -f $(PX4_ROOT)/Makefile.make EXTRADEFINES="$(SKETCHFLAGS) $(WARNFLAGS) $(OPTFLAGS) "'$(EXTRAFLAGS)' APM_MODULE_DIR=$(SKETCHBOOK) SKETCHBOOK=$(SKETCHBOOK) CCACHE=$(CCACHE) PX4_ROOT=$(PX4_ROOT) NUTTX_SRC=$(NUTTX_SRC) MAXOPTIMIZATION="-Os" UAVCAN_DIR=$(UAVCAN_DIR)
 PX4_MAKE_ARCHIVES = $(MAKE) -C $(PX4_ROOT) -f $(PX4_ROOT)/Makefile.make NUTTX_SRC=$(NUTTX_SRC) CCACHE=$(CCACHE) archives MAXOPTIMIZATION="-Os"
 
@@ -72,6 +81,8 @@ HASHADDER_FLAGS += --nuttx "$(NUTTX_SRC)/.."
 endif
 HASHADDER_FLAGS += --uavcan "$(UAVCAN_DIR)"
 
+#复制mk/PX4/config_px4fmu-v2_APM.mk 到modules/PX4Firmware/makefiles/nuttx目录下面,
+#用来告诉nuttx系统需要编译哪些驱动;
 .PHONY: module_mk
 module_mk:
 	$(v) echo "Building $(SKETCHBOOK)/module.mk"
